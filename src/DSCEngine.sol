@@ -43,9 +43,31 @@ pragma solidity ^0.8.18;
  * @notice This contract is VERY loosely based on DAI on the MakerDAO DSS (DAI) system.
  */
 contract DSCEngine {
+    ////////////////
+    // Errors    //
+    ///////////////
+    error DSCEngine__NeedsMoreThanZero();
+    ////////////////
+    // Modifiers  //
+    ///////////////
+    modifier moreThanZero(uint256 amount) {
+        if (amount == 0) {
+            revert DSCEngine__NeedsMoreThanZero();
+        }
+        _;
+    }
+
     function depositCollateralAndMintDsc() external {}
 
-    function depositCollateral() external {}
+    function depositCollateral(
+        address tokenCollateralAddress,
+        uint256 amountCollateral
+    ) external moreThanZero(amountCollateral) {
+        /*
+         * @param tokenCollateralAddress The address of the token to deposit as collateral
+         * @param amountCollateral The amount of collateral to deposit
+         */
+    }
 
     function redeemCollateralForDsc() external {}
 
