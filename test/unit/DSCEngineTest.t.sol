@@ -10,6 +10,12 @@ import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {ERC20Mock} from "openzeppelin-contracts/contracts/mocks/ERC20Mock.sol";
 
 contract DSCEngineTest is Test {
+    event CollateralDeposited(
+        address indexed user,
+        address indexed token,
+        uint256 indexed amount
+    );
+
     DeployDSC deployer;
     DecentralizedStableCoin dsc;
     DSCEngine dsce;
@@ -119,4 +125,20 @@ contract DSCEngineTest is Test {
         assertEq(totalDscMinted, expectedTotalDscMinted);
         assertEq(AMOUNT_COLLATERAL, expectedDepositAmount);
     }
+
+    // Test 1
+    function testDepositCollateralEmitsCollateralDepositedEvent()
+        public
+        depositedCollateral
+    {
+        vm.deal(weth, USER, 5e18);
+        vm.expectEmit();
+        emit CollateralDeposited(USER, weth, 5 ether);
+        vm.startPrank(USER);
+        dsce.depositCollateral(weth, 5 ether);
+        // dsce.getCollateralDeposited(USER, weth) += AMOUNT_COLLATERAL;
+        vm.stopPrank();
+    }
+
+    // no test for btc?
 }
