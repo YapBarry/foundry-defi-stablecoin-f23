@@ -449,8 +449,6 @@ contract DSCEngine is ReentrancyGuard {
         view
         returns (uint256 totalDscMinted, uint256 collateralValueinUsd)
     {
-        (totalDscMinted, collateralValueinUsd) = _getAccountInformation(
-            msg.sender
-        );
+        (totalDscMinted, collateralValueinUsd) = _getAccountInformation(user);
     }
 }
