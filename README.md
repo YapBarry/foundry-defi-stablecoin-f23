@@ -6,3 +6,9 @@
 3. Collateral: Exogenous (Crypto)
    1. wETH
    2. wBTC
+
+- calculate health factor function
+- set health factor if debt is 0
+- added a bunch of view functions
+
+1. What are our invariant/properties?

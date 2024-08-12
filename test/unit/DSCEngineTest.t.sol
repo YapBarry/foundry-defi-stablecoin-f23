@@ -25,6 +25,8 @@ contract DSCEngineTest is Test {
     address weth;
 
     address public USER = makeAddr("user");
+    address public LIQUIDATOR = makeAddr("liquidator");
+
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
 
@@ -139,4 +141,75 @@ contract DSCEngineTest is Test {
     }
 
     // no test for btc?
+
+    ///////////////////////
+    // mintDsc Tests /////
+    //////////////////////
+
+    // Test 2
+    function testDSCMintedIsCorrectlyAddedToMintersBalance()
+        public
+        depositedCollateral
+    {
+        vm.startPrank(USER);
+        dsce.mintDsc(AMOUNT_COLLATERAL);
+        vm.stopPrank();
+        assertEq(dsce.getDSCMinted(USER), AMOUNT_COLLATERAL);
+    }
+
+    ///////////////////////
+    // liquidate Tests ////
+    //////////////////////
+
+    // Test 3 (WIP)
+    function testLiquidateFunctionRevertsIfUserHealthFactorIsAboveMinHealthFactor()
+        public
+    {
+        // do and compare against line 419 of Patrick's video
+        vm.startPrank(LIQUIDATOR);
+
+        vm.stopPrank();
+    }
+
+    // function liquidate(
+    //     address collateral,
+    //     address user,
+    //     uint256 debtToCover
+    // ) external moreThanZero(debtToCover) nonReentrant {
+    //     // need to check health factor of the user
+    //     uint256 startingUserHealthFactor = _healthFactor(user);
+    //     if (startingUserHealthFactor >= MIN_HEALTH_FACTOR) {
+    //         revert DSCEngine__HealthFactorOk();
+    //     }
+    //     // We want to burn their DSC "debt"
+    //     // And take their collateral
+    //     // Bad user: $140 ETH, $100 DSC
+    //     // debtToCover = $100
+    //     // $100 of DSC == ??? ETH?
+    //     // 0.05 ETH
+    //     uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(
+    //         collateral,
+    //         debtToCover
+    //     );
+    //     // And give them a 10% bonus
+    //     // So we are giving the liquidator $110 of WETH for 100 DSC
+    //     // We should implememnt a feature to liquidate in the event the protocol is insolvent
+    //     // And sweep extra amounts into a treasury
+
+    //     // 0.05 eth * .1 = 0.005. Getting 0.055 ETH
+    //     uint256 bonusCollateral = (tokenAmountFromDebtCovered *
+    //         LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
+    //     uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered +
+    //         bonusCollateral;
+    //     // We need to burn the dsc
+    //     _burnDsc(debtToCover, user, msg.sender);
+
+    //     uint256 endingUserHealthFactor = _healthFactor(user);
+    //     if (endingUserHealthFactor <= startingUserHealthFactor) {
+    //         revert DSCEngine__HealthFactorNotImproved();
+    //     }
+    //     // call revert if by paying for the liquidation, the msg.sender's health factor
+    //     // actually worsened
+    //     _revertIfHealthFactorIsBroken(msg.sender);
+    // }
 }
