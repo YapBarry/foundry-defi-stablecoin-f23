@@ -127,16 +127,14 @@ contract DSCEngineTest is Test {
     }
 
     // Test 1
-    function testDepositCollateralEmitsCollateralDepositedEvent()
-        public
-        depositedCollateral
-    {
-        vm.deal(weth, USER, 5e18);
-        vm.expectEmit();
-        emit CollateralDeposited(USER, weth, 5 ether);
+    function testDepositCollateralEmitsCollateralDepositedEvent() public {
         vm.startPrank(USER);
-        dsce.depositCollateral(weth, 5 ether);
-        // dsce.getCollateralDeposited(USER, weth) += AMOUNT_COLLATERAL;
+        ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
+
+        vm.expectEmit(true, true, true, true);
+        emit CollateralDeposited(USER, weth, AMOUNT_COLLATERAL);
+
+        dsce.depositCollateral(weth, AMOUNT_COLLATERAL);
         vm.stopPrank();
     }
 
