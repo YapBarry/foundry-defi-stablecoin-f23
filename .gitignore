@@ -13,4 +13,5 @@ docs/
 # Dotenv file
 .env
 
-lcov.info
+# Ignores lcov.info, which is used purely to track test coverage
+*.info
