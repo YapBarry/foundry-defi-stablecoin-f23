@@ -29,6 +29,8 @@ contract DSCEngineTest is Test {
 
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
+    uint256 public constant AMOUNT_TO_MINT = 100 ether;
+    uint256 public constant COLLATERAL_TO_COVER = 20 ether;
 
     function setUp() public {
         deployer = new DeployDSC();
@@ -162,11 +164,38 @@ contract DSCEngineTest is Test {
     //////////////////////
 
     // Test 3 (WIP)
+
+    modifier depositedCollateralAndMintedDsc() {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
+        dsce.depositCollateralAndMintDsc(
+            weth,
+            AMOUNT_COLLATERAL,
+            AMOUNT_TO_MINT
+        );
+        vm.stopPrank();
+        _;
+    }
+
     function testLiquidateFunctionRevertsIfUserHealthFactorIsAboveMinHealthFactor()
         public
+        depositedCollateralAndMintedDsc
     {
-        // do and compare against line 419 of Patrick's video
+        // who's supposed to call this function to mint dsc to liquidator's address?
+        ERC20Mock(weth).mint(LIQUIDATOR, COLLATERAL_TO_COVER);
+
+        // Liquidator approve dsce contract to transfer
         vm.startPrank(LIQUIDATOR);
+        ERC20Mock(weth).approve(address(dsce), COLLATERAL_TO_COVER);
+        dsce.depositCollateralAndMintDsc(
+            weth,
+            COLLATERAL_TO_COVER,
+            AMOUNT_TO_MINT
+        );
+        dsc.approve(address(dsce), AMOUNT_TO_MINT);
+
+        vm.expectRevert(DSCEngine.DSCEngine__HealthFactorOk.selector);
+        dsce.liquidate(weth, USER, AMOUNT_TO_MINT);
 
         vm.stopPrank();
     }
