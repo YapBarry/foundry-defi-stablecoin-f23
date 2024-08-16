@@ -181,17 +181,19 @@ contract DSCEngineTest is Test {
         public
         depositedCollateralAndMintedDsc
     {
-        // who's supposed to call this function to mint dsc to liquidator's address?
+        // who's supposed to call this function to mint weth to liquidator's address?
         ERC20Mock(weth).mint(LIQUIDATOR, COLLATERAL_TO_COVER);
 
-        // Liquidator approve dsce contract to transfer
         vm.startPrank(LIQUIDATOR);
+        // Liquidator approve dsce contract to transfer weth
         ERC20Mock(weth).approve(address(dsce), COLLATERAL_TO_COVER);
         dsce.depositCollateralAndMintDsc(
             weth,
             COLLATERAL_TO_COVER,
             AMOUNT_TO_MINT
         );
+        // Liquidator is approving dsce to transfer dsc tokens on behalf of liquidator
+        // Need this line because liquidator is spending dsc (to help repay the user's debt) to liquidate the "user" to receive his collateral
         dsc.approve(address(dsce), AMOUNT_TO_MINT);
 
         vm.expectRevert(DSCEngine.DSCEngine__HealthFactorOk.selector);
