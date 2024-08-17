@@ -303,7 +303,9 @@ contract DSCEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function getHealthFactor() external view {}
+    function getHealthFactor(user) external view {
+        return _healthFactor(user);
+    }
 
     ////////////////////////////////////////
     // Private & Internal View Functions  //
