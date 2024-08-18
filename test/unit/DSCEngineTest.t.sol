@@ -73,7 +73,7 @@ contract DSCEngineTest is Test {
     }
 
     function testGetTokenAmountFromUsd() public {
-        uint256 usdAmount = 100 ether;
+        uint256 usdAmount = 100 ether; // 100 ether here actually just refers to 100*1e18. Doing this to avoid decimals.
         // $2000 /ETH, $100
         uint256 expectedWeth = 0.05 ether;
         uint256 actualWeth = dsce.getTokenAmountFromUsd(weth, usdAmount);
@@ -251,20 +251,20 @@ contract DSCEngineTest is Test {
     // Test 5
     function testGetTokenAmountFromUsdIsAccurate() public {}
 
-    // function getTokenAmountFromUsd(
-    //     address token,
-    //     uint256 usdAmountInWei
-    // ) public view returns (uint256) {
-    //     // price of ETH (token)
-    //     // $/ETH ETH??
-    //     // $2000 / ETH. $1000 = 0.5 ETH
-    //     AggregatorV3Interface priceFeed = AggregatorV3Interface(
-    //         s_priceFeeds[token]
-    //     );
-    //     (, int256 price, , , ) = priceFeed.latestRoundData();
-    //     // ($10e18 * 1e18) / ($2000e8 * 1e10)
-    //     return
-    //         (usdAmountInWei * PRECISION) /
-    //         (uint256(price) * ADDITIONAL_FEED_PRECISION);
-    // }
+    function getTokenAmountFromUsd(
+        address token,
+        uint256 usdAmountInWei
+    ) public view returns (uint256) {
+        // price of ETH (token)
+        // $/ETH ETH??
+        // $2000 / ETH. $1000 = 0.5 ETH
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(
+            s_priceFeeds[token]
+        );
+        (, int256 price, , , ) = priceFeed.latestRoundData();
+        // ($10e18 * 1e18) / ($2000e8 * 1e10)
+        return
+            (usdAmountInWei * PRECISION) /
+            (uint256(price) * ADDITIONAL_FEED_PRECISION);
+    }
 }

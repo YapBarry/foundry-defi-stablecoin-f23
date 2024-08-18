@@ -63,17 +63,17 @@ contract DSCEngine is ReentrancyGuard {
     /////////////////////////
     // State Variables    //
     ///////////////////////
-    uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
-    uint256 private constant PRECISION = 1e18;
+    uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10; // to add to the CL eth/usd pricefeed price for e.g because it only has 8 decimal places
+    uint256 private constant PRECISION = 1e18; // smth you divide by in price*amount calculation because we need to make sure price and amount has the same decimal places
     uint256 private constant LIQUIDATION_THRESHOLD = 50; // 200% overcollateralized
-    uint256 private constant LIQUIDATION_PRECISION = 100;
+    uint256 private constant LIQUIDATION_PRECISION = 100; // added to sort of avoid floating point
     uint256 private constant MIN_HEALTH_FACTOR = 1;
     uint256 private constant LIQUIDATION_BONUS = 10; // this means a 10% bonus
 
     mapping(address token => address priceFeed) private s_priceFeeds; // tokenToPriceFeed
     mapping(address user => mapping(address token => uint256 amount))
         private s_collateralDeposited;
-    mapping(address user => uint256 amountDscMinted) private s_DSCMinted;
+    mapping(address user => uint256 amountDscMinted) private s_DSCMinted; // how much DSC the users owe the DSCE / exchange
     address[] private s_collateralTokens;
 
     DecentralizedStableCoin private immutable i_dsc;
@@ -115,7 +115,7 @@ contract DSCEngine is ReentrancyGuard {
     constructor(
         address[] memory tokenAddresses,
         address[] memory priceFeedAddresses,
-        address dscAddress
+        address dscAddress // address of an already deployed dsc contract
     ) {
         // USD Price Feeds
         if (tokenAddresses.length != priceFeedAddresses.length) {
@@ -126,6 +126,7 @@ contract DSCEngine is ReentrancyGuard {
             s_priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
             s_collateralTokens.push(tokenAddresses[i]);
         }
+        // so that we can call the methods in this contract later just by referring to i_dsc variable
         i_dsc = DecentralizedStableCoin(dscAddress);
     }
 
@@ -277,6 +278,9 @@ contract DSCEngine is ReentrancyGuard {
         // debtToCover = $100
         // $100 of DSC == ??? ETH?
         // 0.05 ETH
+
+        // if we have $100 DSC debt because we minted it, the function below finds out how much of the collateral (ETH in this case)
+        // is equivalent to the $100 DSC that we owe the exchange
         uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(
             collateral,
             debtToCover
@@ -301,10 +305,6 @@ contract DSCEngine is ReentrancyGuard {
         // call revert if by paying for the liquidation, the msg.sender's health factor
         // actually worsened
         _revertIfHealthFactorIsBroken(msg.sender);
-    }
-
-    function getHealthFactor(user) external view {
-        return _healthFactor(user);
     }
 
     ////////////////////////////////////////
@@ -439,7 +439,9 @@ contract DSCEngine is ReentrancyGuard {
         );
         (, int256 price, , , ) = priceFeed.latestRoundData();
         // 1 ETH = $1000
-        // The returned value from CL will be 1000 * 1e8
+        // The returned value from ChainLink will be 1000 * 1e8 (eth usd has 8 decimal places)
+        // if we just return price * amount(of eth)
+        // it'll be (1000 * 1e8) * (1000 * 1e18) for example
         return
             ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
