@@ -159,6 +159,10 @@ contract DSCEngineTest is Test {
         assertEq(dsce.getDSCMinted(USER), AMOUNT_COLLATERAL);
     }
 
+    ///////////////////////////
+    // healthFactor Tests ////
+    //////////////////////////
+
     ///////////////////////
     // liquidate Tests ////
     //////////////////////

@@ -377,15 +377,7 @@ contract DSCEngine is ReentrancyGuard {
             uint256 totalDscMinted,
             uint256 collateralValueInUsd
         ) = _getAccountInformation(user);
-        uint256 collateralAdjustedForThreshold = (collateralValueInUsd *
-            LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
-        // $150 ETH / 100 DSC = 1.5
-        // 150*50 = 7500/ 100 = (75/100) < 1 -> undercollateralized
-
-        // $1000 ETH / 100 DSC
-        // 1000 * 50 = 50000 / 100 = (500 / 100) > 1 -> overcollateralized
-
-        return (collateralAdjustedForThreshold * PRECISION) / totalDscMinted;
+        return _calculateHealthFactor(totalDscMinted, collateralValueInUsd);
     }
 
     // 1. Check health factor (do they have enough collateral?)
@@ -395,6 +387,17 @@ contract DSCEngine is ReentrancyGuard {
         if (userHealthFactor < MIN_HEALTH_FACTOR) {
             revert DSCEngine__BreaksHealthFactor(userHealthFactor);
         }
+    }
+
+    function _calculateHealthFactor(
+        uint256 totalDscMinted,
+        uint256 collateralValueInUsd
+    ) internal pure returns (uint256) {
+        // for if someones deposit collateral but does not mint anything. In this case the denominator will be 0 -> infinite
+        if (totalDscMinted == 0) return type(uint256).max;
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd *
+            LIQUIDATION_THRESHOLD) / (LIQUIDATION_PRECISION);
+        return (collateralAdjustedForThreshold * 1e18) / totalDscMinted;
     }
 
     ////////////////////////////////////////
@@ -458,6 +461,13 @@ contract DSCEngine is ReentrancyGuard {
 
     function getDSCMinted(address user) external view returns (uint256) {
         return s_DSCMinted[user];
+    }
+
+    function calculateHealthFactor(
+        uint256 totalDscMinted,
+        uint256 collateralValueinUsd
+    ) external pure returns (uint256) {
+        return _calculateHealthFactor(totalDscMinted, collateralValueInUsd);
     }
 
     function getHealthFactor(address user) external view returns (uint256) {
