@@ -10,11 +10,11 @@
 
 pragma solidity ^0.8.18;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console2} from "forge-std/Test.sol";
 import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {DeployDSC} from "../../script/DeployDSC.s.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
-import {DecentralizedStableCoin} from "../../DecentralizedStableCoin.sol";
+import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -23,18 +23,30 @@ contract OpenInvariantsTest is StdInvariant, Test {
     DSCEngine dsce;
     DecentralizedStableCoin dsc;
     HelperConfig config;
-    IERC20 weth;
-    IERC20 wbtc;
+    address weth;
+    address wbtc;
 
     function setUp() external {
         deployer = new DeployDSC();
-        (dsce, dsce, config) = deployer.run();
-        (,, weth, btc,) = config.activeNetworkConfig();
+        (dsc, dsce, config) = deployer.run();
+        (,, weth, wbtc,) = config.activeNetworkConfig();
         targetContract(address(dsce));
     }
 
     function invariant_protocolMustHaveMoreValueThanTotalSupply() public view {
         // get the value of all the collateral in the protocol
         // compare it to allt he debt (dsc);
+        uint256 totalSupply = dsc.totalSupply();
+        uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dsce));
+        uint256 totalBtcDeposited = IERC20(wbtc).balanceOf(address(dsce));
+
+        uint256 wethValue = dsce.getUsdValue(weth, totalWethDeposited);
+        uint256 wbtcValue = dsce.getUsdValue(wbtc, totalBtcDeposited);
+
+        console2.log("weth value: ", wethValue);
+        console2.log("wbtc value: ", wbtcValue);
+        console2.log("total supply: ", totalSupply);
+        
+        assert(wethValue + wbtcValue > totalSupply);
     }
 }
