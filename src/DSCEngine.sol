@@ -23,7 +23,7 @@
 // private
 // view & pure functions
 
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.19;
 
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -293,8 +293,9 @@ contract DSCEngine is ReentrancyGuard {
         // 0.05 eth * .1 = 0.005. Getting 0.055 ETH
         uint256 bonusCollateral = (tokenAmountFromDebtCovered *
             LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
-        uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered +
-            bonusCollateral;
+        _redeemCollateral(user, msg.sender, collateral, tokenAmountFromDebtCovered);
+        // uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered +
+        //     bonusCollateral;
         // We need to burn the dsc
         _burnDsc(debtToCover, user, msg.sender);
 

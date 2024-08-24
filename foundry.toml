@@ -6,6 +6,7 @@ remappings = [
     "@chainlink/contracts=lib/chainlink-brownie-contracts/contracts/",
     "@openzeppelin/contracts=lib/openzeppelin-contracts/contracts",
 ]
+solc_Version = "0.8.19"
 
 [invariant]
 runs = 128
