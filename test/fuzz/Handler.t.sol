@@ -47,6 +47,23 @@ contract Handler is Test {
         }
         dsce.redeemCollateral(address(collateral), amountCollateral);
     }
+
+    function mintDsc(uint256 amount) public {
+        vm.startPrank(msg.sender);
+        (uint256 totalDscMinted, uint256 collateralValueInUsd) = dsce.getAccountInformation(msg.sender);
+        
+        int256 maxDscToMint = (int256(collateralValueInUsd)/2) - int256(totalDscMinted); // since it does not make sense for collateral to be negative
+        if(maxDscToMint < 0){
+            return;
+        }
+        amount = bound(amount, 0, uint256(maxDscToMint));
+        if(amount ==0){
+            return;
+        }
+        vm.startPrank(msg.sender);
+        dsce.mintDsc(amount);
+        vm.stopPrank();
+    }
     
     // Helper Functions
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns (ERC20Mock){
