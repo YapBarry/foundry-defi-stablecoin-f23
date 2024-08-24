@@ -15,6 +15,9 @@ contract Handler is Test {
     ERC20Mock weth;
     ERC20Mock wbtc;
 
+    uint256 public timesMintIsCalled;
+    address[] usersWithCollateralDeposited;
+
     uint256 MAX_DEPOSIT_SIZE = type(uint96).max; // the max uint96 value. If we do max of uint256, depositing collateral after that will hit the maximum allowable number
 
     constructor(DSCEngine _dscEngine, DecentralizedStableCoin _dsc ){
@@ -36,6 +39,7 @@ contract Handler is Test {
         collateral.approve(address(dsce), amountCollateral);
         dsce.depositCollateral(address(collateral), amountCollateral);
         vm.stopPrank();
+        usersWithCollateralDeposited.push(msg.sender);
     }
 
     function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
@@ -48,9 +52,14 @@ contract Handler is Test {
         dsce.redeemCollateral(address(collateral), amountCollateral);
     }
 
-    function mintDsc(uint256 amount) public {
-        vm.startPrank(msg.sender);
-        (uint256 totalDscMinted, uint256 collateralValueInUsd) = dsce.getAccountInformation(msg.sender);
+    function mintDsc(uint256 amount, uint256 addressSeed) public {
+        if(usersWithCollateralDeposited.length == 0){
+            return;
+        }
+        
+        // To randomize the sender but at the same time ensure they have deposited collateral before
+        address sender = usersWithCollateralDeposited[addressSeed % usersWithCollateralDeposited.length];
+        (uint256 totalDscMinted, uint256 collateralValueInUsd) = dsce.getAccountInformation(sender);
         
         int256 maxDscToMint = (int256(collateralValueInUsd)/2) - int256(totalDscMinted); // since it does not make sense for collateral to be negative
         if(maxDscToMint < 0){
@@ -60,9 +69,10 @@ contract Handler is Test {
         if(amount ==0){
             return;
         }
-        vm.startPrank(msg.sender);
+        vm.startPrank(sender);
         dsce.mintDsc(amount);
         vm.stopPrank();
+        timesMintIsCalled++;
     }
     
     // Helper Functions
