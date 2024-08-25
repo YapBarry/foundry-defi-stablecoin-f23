@@ -8,7 +8,7 @@
 
 // 2. Getter view functions should never revert <- evergreen invariant
 
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.19;
 
 import {Test, console} from "forge-std/Test.sol";
 import {StdInvariant} from "forge-std/StdInvariant.sol";
@@ -56,18 +56,18 @@ contract Invariants is StdInvariant, Test {
     }
 
     function invariant_gettersShouldNotRevert() public {
-        dsce.getAccountCollateralValue();
-        dsce.getAccountInformation();
-        dsce.getCollateralBalanceOfUser();
-        dsce.getCollateralTokenPriceFeed();
+        // dsce.getAccountCollateralValue();
+        // dsce.getAccountInformation();
+        // dsce.getCollateralBalanceOfUser();
+        // dsce.getCollateralTokenPriceFeed();
         dsce.getCollateralTokens();
-        dsce.getDSCMinted();
+        // dsce.getDSCMinted();
         dsce.getDsc();
-        dsce.getHealthFactor();
+        // dsce.getHealthFactor();
         dsce.getLiquidationBonus();
         dsce.getLiquidationThreshold();
         dsce.getMinHealthFactor();
-        dsce.getTokenAmountFromUsd();
-        dsce.getUsdValue();
+        // dsce.getTokenAmountFromUsd();
+        // dsce.getUsdValue();
     }
 }

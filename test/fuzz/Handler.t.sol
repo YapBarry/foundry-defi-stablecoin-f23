@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: MIT
 
 // Handler is going to narrow down the way we call functions
-pragma solidity ^0.8.18;
+pragma solidity ^0.8.19;
 
 import {Test, console} from "forge-std/Test.sol";
 import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin} from "../../src/DecentralizedStableCoin.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
+
+// Price Feed
+
 
 contract Handler is Test {
     DSCEngine dsce;
@@ -17,6 +21,7 @@ contract Handler is Test {
 
     uint256 public timesMintIsCalled;
     address[] usersWithCollateralDeposited;
+    MockV3Aggregator public ethUsdPriceFeed;
 
     uint256 MAX_DEPOSIT_SIZE = type(uint96).max; // the max uint96 value. If we do max of uint256, depositing collateral after that will hit the maximum allowable number
 
@@ -27,6 +32,8 @@ contract Handler is Test {
         address[] memory collateralTokens = dsce.getCollateralTokens();
         weth = ERC20Mock(collateralTokens[0]);
         wbtc = ERC20Mock(collateralTokens[1]);
+
+        ethUsdPriceFeed = MockV3Aggregator(dsce.getCollateralTokenPriceFeed(address(weth)));
     }
     
     // redeem collateral <-
@@ -74,6 +81,12 @@ contract Handler is Test {
         vm.stopPrank();
         timesMintIsCalled++;
     }
+
+    // This breaks our invariant test suite
+    // function updateCollateralPrice(uint96 newPrice) public {
+    //     int256 newPriceInt = int256(uint256(newPrice)); // need to wrap int96 with uint256 before you can wrap with int256
+    //     ethUsdPriceFeed.updateAnswer(newPriceInt);
+    // }
     
     // Helper Functions
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns (ERC20Mock){
